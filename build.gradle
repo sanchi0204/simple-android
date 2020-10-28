@@ -73,12 +73,14 @@ buildscript {
       zxing                    : '3.3.3',
       paging                   : '2.1.2',
       appcompat                : '1.2.0-beta01',
-      navigation               : '2.3.0',
+      navigation               : '2.3.1',
       lottie                   : '3.4.0',
       desugarJdk               : '1.0.9',
       signaturePad             : '1.3.1',
       viewpager2               : '1.0.0',
-      lint                     : '27.0.1'
+      lint                     : '27.0.1',
+      simpleStack              : '2.4.0',
+      simpleStackExtensions    : '2.0.1'
   ]
 
   repositories {

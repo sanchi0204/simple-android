@@ -32,6 +32,9 @@ dependencies {
   implementation "com.jakewharton.timber:timber:$versions.timber"
   testImplementation "pl.pragmatists:JUnitParams:$versions.junitParams"
   testImplementation "com.google.truth:truth:$versions.truth"
+
+  api "com.github.Zhuinden:simple-stack:$versions.simpleStack"
+  api "com.github.Zhuinden:simple-stack-extensions:$versions.simpleStackExtensions"
 }
 repositories {
   mavenCentral()

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import io.reactivex.Observable
 import org.simple.clinic.BuildConfig
@@ -15,6 +14,7 @@ import org.simple.clinic.R
 import org.simple.clinic.di.InjectorProviderContextWrapper
 import org.simple.clinic.main.TheActivity
 import org.simple.clinic.mobius.MobiusDelegate
+import org.simple.clinic.navigation.ScreenHostView
 import org.simple.clinic.registerorlogin.AuthenticationActivity
 import org.simple.clinic.router.ScreenResultBus
 import org.simple.clinic.router.screen.ActivityPermissionResult
@@ -56,7 +56,9 @@ class SetupActivity : AppCompatActivity(), UiActions {
     )
   }
 
-  private lateinit var navController: NavController
+  private val navController: NavController by unsafeLazy {
+    (supportFragmentManager.findFragmentById(R.id.screen_host_view) as ScreenHostView).navController
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -65,7 +67,6 @@ class SetupActivity : AppCompatActivity(), UiActions {
       window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
     }
     setContentView(R.layout.activity_setup)
-    navController = findNavController(R.id.screen_host_view)
 
     delegate.onRestoreInstanceState(savedInstanceState)
   }
