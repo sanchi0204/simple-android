@@ -10,7 +10,6 @@ import androidx.fragment.app.FragmentManager
 import io.reactivex.rxkotlin.ofType
 import io.reactivex.subjects.PublishSubject
 import org.simple.clinic.R
-import org.simple.clinic.bloodsugar.entry.BloodSugarEntrySheet
 import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.platform.crash.CrashReporter
@@ -56,7 +55,7 @@ class ConfirmRemoveBloodSugarDialog : AppCompatDialogFragment(), ConfirmRemoveBl
   private val events = PublishSubject.create<ConfirmRemoveBloodSugarEvent>()
 
   private val delegate by unsafeLazy {
-    val bloodSugarMeasurementUuid = arguments!!.getSerializable(KEY_BLOOD_SUGAR_UUID) as UUID
+    val bloodSugarMeasurementUuid = requireArguments().getSerializable(KEY_BLOOD_SUGAR_UUID) as UUID
 
     MobiusDelegate.forActivity(
         events = events.ofType(),
