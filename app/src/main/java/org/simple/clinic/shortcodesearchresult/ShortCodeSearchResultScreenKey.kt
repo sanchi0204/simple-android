@@ -6,7 +6,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-data class ShortCodeSearchResultScreenKey(val shortCode: String) : FullScreenKey {
+data class ShortCodeSearchResultScreenKey(val shortCode: String) : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName: String = "Shortcode Search Result Screen"

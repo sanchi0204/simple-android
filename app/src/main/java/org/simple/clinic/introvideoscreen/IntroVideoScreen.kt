@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.jakewharton.rxbinding3.view.clicks
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.cast
 import kotlinx.android.synthetic.main.screen_intro_video.view.*
@@ -16,7 +17,6 @@ import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.platform.crash.CrashReporter
 import org.simple.clinic.registration.register.RegistrationLoadingScreenKey
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.util.unsafeLazy
 import javax.inject.Inject
 import javax.inject.Named
@@ -27,7 +27,7 @@ class IntroVideoScreen(
 ) : ConstraintLayout(context, attrs), UiActions {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
 
   @Inject
   @Named("training_video_youtube_id")
@@ -85,7 +85,7 @@ class IntroVideoScreen(
   }
 
   override fun openHome() {
-    screenRouter.push(RegistrationLoadingScreenKey())
+    backstack.goTo(RegistrationLoadingScreenKey())
   }
 
   private fun videoClicks(): Observable<IntroVideoEvent> {

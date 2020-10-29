@@ -6,7 +6,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-data class ForgotPinConfirmPinScreenKey(val enteredPin: String) : FullScreenKey {
+data class ForgotPinConfirmPinScreenKey(val enteredPin: String) : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "Forgot PIN Confirm PIN"

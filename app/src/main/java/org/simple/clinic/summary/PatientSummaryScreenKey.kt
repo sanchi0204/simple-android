@@ -15,7 +15,7 @@ data class PatientSummaryScreenKey(
     val intention: OpenIntention,
     // TODO(vs): 2019-10-18 Move this to the UI model when migrating to Mobius
     val screenCreatedTimestamp: Instant
-) : FullScreenKey, Parcelable {
+) : FullScreenKey(), Parcelable {
 
   @IgnoredOnParcel
   override val analyticsName = "Patient Summary"

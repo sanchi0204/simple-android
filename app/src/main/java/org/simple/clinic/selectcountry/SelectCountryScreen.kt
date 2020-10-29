@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jakewharton.rxbinding2.view.RxView
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.cast
 import io.reactivex.rxkotlin.ofType
@@ -20,7 +21,6 @@ import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.platform.crash.CrashReporter
 import org.simple.clinic.registration.phone.RegistrationPhoneScreenKey
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.selectcountry.adapter.Event
 import org.simple.clinic.selectcountry.adapter.SelectableCountryItem
 import org.simple.clinic.selectcountry.adapter.SelectableCountryItemDiffCallback
@@ -51,7 +51,7 @@ class SelectCountryScreen(
   lateinit var activity: AppCompatActivity
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
 
   private val uiRenderer = SelectCountryUiRenderer(this)
 
@@ -180,6 +180,6 @@ class SelectCountryScreen(
   }
 
   override fun goToNextScreen() {
-    screenRouter.push(RegistrationPhoneScreenKey())
+    backstack.goTo(RegistrationPhoneScreenKey())
   }
 }

@@ -9,7 +9,7 @@ import java.util.UUID
 @Parcelize
 data class DeletePatientScreenKey(
     val patientUuid: UUID
-) : FullScreenKey {
+) : FullScreenKey() {
   @IgnoredOnParcel
   override val analyticsName: String = "Delete Patient"
 

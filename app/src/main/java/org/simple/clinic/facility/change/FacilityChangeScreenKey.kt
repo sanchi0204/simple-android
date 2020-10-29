@@ -6,7 +6,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class FacilityChangeScreenKey : FullScreenKey {
+class FacilityChangeScreenKey : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "Post Registration Facility Change"

@@ -6,7 +6,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class EnterOtpScreenKey : FullScreenKey {
+class EnterOtpScreenKey : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "Enter Login OTP Manually"

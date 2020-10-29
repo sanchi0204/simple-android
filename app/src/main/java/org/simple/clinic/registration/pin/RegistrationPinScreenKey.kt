@@ -9,7 +9,7 @@ import org.simple.clinic.user.OngoingRegistrationEntry
 @Parcelize
 data class RegistrationPinScreenKey(
     val registrationEntry: OngoingRegistrationEntry
-) : FullScreenKey {
+) : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "Registration PIN Entry"

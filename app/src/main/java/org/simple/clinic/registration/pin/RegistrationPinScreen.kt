@@ -7,6 +7,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.RelativeLayout
 import com.jakewharton.rxbinding3.widget.editorActions
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
 import kotlinx.android.synthetic.main.screen_registration_pin.view.*
@@ -15,8 +16,8 @@ import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.SECURITY_PIN_LENGTH
 import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
+import org.simple.clinic.navigation.ScreenKeyProvider
 import org.simple.clinic.registration.confirmpin.RegistrationConfirmPinScreenKey
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.user.OngoingRegistrationEntry
 import org.simple.clinic.util.unsafeLazy
 import javax.inject.Inject
@@ -27,7 +28,10 @@ class RegistrationPinScreen(
 ) : RelativeLayout(context, attrs), RegistrationPinUi, RegistrationPinUiActions {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
+
+  @Inject
+  lateinit var screenKeyProvider: ScreenKeyProvider
 
   @Inject
   lateinit var effectHandlerFactory: RegistrationPinEffectHandler.Factory
@@ -44,7 +48,7 @@ class RegistrationPinScreen(
 
   private val delegate: MobiusDelegate<RegistrationPinModel, RegistrationPinEvent, RegistrationPinEffect> by unsafeLazy {
     val uiRenderer = RegistrationPinUiRenderer(this)
-    val screenKey = screenRouter.key<RegistrationPinScreenKey>(this)
+    val screenKey = screenKeyProvider.provide<RegistrationPinScreenKey>(this)
 
     MobiusDelegate.forView(
       events = events.ofType(),
@@ -65,9 +69,7 @@ class RegistrationPinScreen(
 
     pinEditText.isSaveEnabled = false
 
-    backButton.setOnClickListener {
-      screenRouter.pop()
-    }
+    backButton.setOnClickListener { backstack.goBack() }
 
     post { pinEditText.requestFocus() }
   }
@@ -123,7 +125,7 @@ class RegistrationPinScreen(
   }
 
   override fun openRegistrationConfirmPinScreen(registrationEntry: OngoingRegistrationEntry) {
-    screenRouter.push(RegistrationConfirmPinScreenKey(registrationEntry))
+    backstack.goTo(RegistrationConfirmPinScreenKey(registrationEntry))
   }
 
   interface Injector {

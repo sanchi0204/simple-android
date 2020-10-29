@@ -10,6 +10,8 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import com.jakewharton.rxbinding3.widget.editorActions
 import com.jakewharton.rxbinding3.widget.textChanges
+import com.zhuinden.simplestack.Backstack
+import com.zhuinden.simplestack.StateChange
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
 import kotlinx.android.synthetic.main.screen_registration_phone.view.*
@@ -22,8 +24,6 @@ import org.simple.clinic.login.pin.LoginPinScreenKey
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.registration.name.RegistrationNameScreenKey
 import org.simple.clinic.registration.phone.loggedout.LoggedOutOfDeviceDialog
-import org.simple.clinic.router.screen.RouterDirection
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.user.OngoingRegistrationEntry
 import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.uuid.UuidGenerator
@@ -37,7 +37,7 @@ class RegistrationPhoneScreen(
 ) : RelativeLayout(context, attrs), RegistrationPhoneUi, RegistrationPhoneUiActions {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
 
   @Inject
   lateinit var activity: AppCompatActivity
@@ -119,7 +119,7 @@ class RegistrationPhoneScreen(
   }
 
   override fun openRegistrationNameEntryScreen(currentRegistrationEntry: OngoingRegistrationEntry) {
-    screenRouter.push(RegistrationNameScreenKey(currentRegistrationEntry))
+    backstack.goTo(RegistrationNameScreenKey(currentRegistrationEntry))
   }
 
   override fun showInvalidNumberError() {
@@ -152,7 +152,7 @@ class RegistrationPhoneScreen(
   }
 
   override fun openLoginPinEntryScreen() {
-    screenRouter.push(LoginPinScreenKey())
+    backstack.goTo(LoginPinScreenKey())
   }
 
   override fun showLoggedOutOfDeviceDialog() {
@@ -160,7 +160,7 @@ class RegistrationPhoneScreen(
   }
 
   override fun showAccessDeniedScreen(number: String) {
-    screenRouter.clearHistoryAndPush(AccessDeniedScreenKey(number), RouterDirection.REPLACE)
+    backstack.setHistory(listOf(AccessDeniedScreenKey(number)), StateChange.REPLACE)
   }
 
   interface Injector {

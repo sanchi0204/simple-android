@@ -6,12 +6,10 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class EmptyScreenKey : FullScreenKey {
+class EmptyScreenKey : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName: String = "Empty Screen"
 
-  override fun layoutRes(): Int {
-    return R.layout.screen_empty
-  }
+  override fun layoutRes(): Int = R.layout.screen_empty
 }

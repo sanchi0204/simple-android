@@ -15,7 +15,7 @@ data class EditPatientScreenKey(
     val address: PatientAddress,
     val phoneNumber: PatientPhoneNumber?,
     val bangladeshNationalId: BusinessId?
-) : FullScreenKey {
+) : FullScreenKey() {
   companion object {
     fun fromPatientData(
         patient: Patient,

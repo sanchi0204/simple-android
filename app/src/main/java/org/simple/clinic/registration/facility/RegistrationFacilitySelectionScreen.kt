@@ -6,6 +6,7 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
 import kotlinx.android.synthetic.main.screen_registration_facility_selection.view.*
@@ -13,9 +14,10 @@ import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.di.injector
 import org.simple.clinic.introvideoscreen.IntroVideoScreenKey
 import org.simple.clinic.mobius.MobiusDelegate
+import org.simple.clinic.navigation.ScreenKeyProvider
 import org.simple.clinic.registration.confirmfacility.ConfirmFacilitySheet
+import org.simple.clinic.router.ScreenResultBus
 import org.simple.clinic.router.screen.ActivityResult
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.util.extractSuccessful
 import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.widgets.UiEvent
@@ -28,7 +30,13 @@ class RegistrationFacilitySelectionScreen(
 ) : RelativeLayout(context, attrs), RegistrationFacilitySelectionUiActions {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
+  
+  @Inject
+  lateinit var screenKeyProvider: ScreenKeyProvider
+
+  @Inject
+  lateinit var screenResults: ScreenResultBus
 
   @Inject
   lateinit var activity: AppCompatActivity
@@ -47,7 +55,7 @@ class RegistrationFacilitySelectionScreen(
   }
 
   private val delegate by unsafeLazy {
-    val screenKey = screenRouter.key<RegistrationFacilitySelectionScreenKey>(this)
+    val screenKey = screenKeyProvider.provide<RegistrationFacilitySelectionScreenKey>(this)
 
     MobiusDelegate.forView(
         events = events.ofType(),
@@ -67,7 +75,7 @@ class RegistrationFacilitySelectionScreen(
 
     context.injector<Injector>().inject(this)
 
-    facilityPickerView.backClicked = { screenRouter.pop() }
+    facilityPickerView.backClicked = { backstack.goBack() }
   }
 
   override fun onAttachedToWindow() {
@@ -95,8 +103,8 @@ class RegistrationFacilitySelectionScreen(
   }
 
   private fun registrationFacilityConfirmations(): Observable<UiEvent> {
-    return screenRouter
-        .streamScreenResults()
+    return screenResults
+        .streamResults()
         .ofType<ActivityResult>()
         .extractSuccessful(CONFIRM_FACILITY_SHEET) { intent ->
           val confirmedFacilityUuid = ConfirmFacilitySheet.confirmedFacilityUuid(intent)
@@ -105,7 +113,7 @@ class RegistrationFacilitySelectionScreen(
   }
 
   override fun openIntroVideoScreen() {
-    screenRouter.push(IntroVideoScreenKey())
+    backstack.goTo(IntroVideoScreenKey())
   }
 
   override fun showConfirmFacilitySheet(facilityUuid: UUID, facilityName: String) {

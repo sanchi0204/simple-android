@@ -5,15 +5,17 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.widget.RelativeLayout
 import com.jakewharton.rxbinding3.view.clicks
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
 import kotlinx.android.synthetic.main.screen_registration_location_permission.view.*
 import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
+import org.simple.clinic.navigation.ScreenKeyProvider
 import org.simple.clinic.registration.facility.RegistrationFacilitySelectionScreenKey
+import org.simple.clinic.router.ScreenResultBus
 import org.simple.clinic.router.screen.ActivityPermissionResult
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.user.OngoingRegistrationEntry
 import org.simple.clinic.util.RequestPermissions
 import org.simple.clinic.util.RuntimePermissions
@@ -28,7 +30,13 @@ class RegistrationLocationPermissionScreen(
 ) : RelativeLayout(context, attrs), RegistrationLocationPermissionUi {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
+
+  @Inject
+  lateinit var screenKeyProvider: ScreenKeyProvider
+
+  @Inject
+  lateinit var screenResultBus: ScreenResultBus
 
   @Inject
   lateinit var runtimePermissions: RuntimePermissions
@@ -36,11 +44,11 @@ class RegistrationLocationPermissionScreen(
   @Inject
   lateinit var effectHandlerFactory: RegistrationLocationPermissionEffectHandler.Factory
 
-  private val screenKey by unsafeLazy { screenRouter.key<RegistrationLocationPermissionScreenKey>(this) }
+  private val screenKey by unsafeLazy { screenKeyProvider.provide<RegistrationLocationPermissionScreenKey>(this) }
 
   private val events by unsafeLazy {
-    val permissionResults = screenRouter
-        .streamScreenResults()
+    val permissionResults = screenResultBus
+        .streamResults()
         .ofType<ActivityPermissionResult>()
 
     Observable
@@ -73,9 +81,7 @@ class RegistrationLocationPermissionScreen(
     }
     context.injector<Injector>().inject(this)
 
-    toolbar.setOnClickListener {
-      screenRouter.pop()
-    }
+    toolbar.setOnClickListener { backstack.goBack() }
 
     // Can't tell why, but the keyboard stays
     // visible on coming from the previous screen.
@@ -113,7 +119,7 @@ class RegistrationLocationPermissionScreen(
   }
 
   override fun openFacilitySelectionScreen(registrationEntry: OngoingRegistrationEntry) {
-    screenRouter.push(RegistrationFacilitySelectionScreenKey(registrationEntry))
+    backstack.goTo(RegistrationFacilitySelectionScreenKey(registrationEntry))
   }
 
   interface Injector {

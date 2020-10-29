@@ -6,16 +6,16 @@ import android.util.AttributeSet
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.jakewharton.rxbinding3.view.clicks
+import com.zhuinden.simplestack.Backstack
+import com.zhuinden.simplestack.ScopedServices
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.screen_login_pin.view.*
 import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.di.injector
 import org.simple.clinic.main.TheActivity
 import org.simple.clinic.mobius.MobiusDelegate
-import org.simple.clinic.router.screen.BackPressInterceptCallback
-import org.simple.clinic.router.screen.BackPressInterceptor
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.security.pin.PinAuthenticated
 import org.simple.clinic.security.pin.verification.LoginPinServerVerificationMethod.UserData
 import org.simple.clinic.user.OngoingLoginEntry
@@ -24,10 +24,13 @@ import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.widgets.UiEvent
 import javax.inject.Inject
 
-class LoginPinScreen(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs), LoginPinScreenUi, UiActions {
+class LoginPinScreen(context: Context, attrs: AttributeSet) : RelativeLayout(context, attrs),
+    LoginPinScreenUi,
+    UiActions,
+    ScopedServices.HandlesBack {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
 
   @Inject
   lateinit var effectHandler: LoginPinEffectHandler.Factory
@@ -35,11 +38,14 @@ class LoginPinScreen(context: Context, attrs: AttributeSet) : RelativeLayout(con
   @Inject
   lateinit var activity: AppCompatActivity
 
+  private val otherEvents = PublishSubject.create<LoginPinEvent>()
+
   private val events by unsafeLazy {
     Observable
         .mergeArray(
             pinAuthentications(),
-            backClicks()
+            backClicks(),
+            otherEvents
         )
         .compose(ReportAnalyticsEvents())
   }
@@ -111,21 +117,9 @@ class LoginPinScreen(context: Context, attrs: AttributeSet) : RelativeLayout(con
   }
 
   private fun backClicks(): Observable<PinBackClicked> {
-    val backClicksFromView = backButton.clicks().map { PinBackClicked }
-
-    val backClicksFromSystem = Observable.create<PinBackClicked> { emitter ->
-      val backPressInterceptor = object : BackPressInterceptor {
-        override fun onInterceptBackPress(callback: BackPressInterceptCallback) {
-          emitter.onNext(PinBackClicked)
-        }
-      }
-
-      screenRouter.registerBackPressInterceptor(backPressInterceptor)
-
-      emitter.setCancellable { screenRouter.unregisterBackPressInterceptor(backPressInterceptor) }
-    }
-
-    return backClicksFromView.mergeWith(backClicksFromSystem)
+    return backButton
+        .clicks()
+        .map { PinBackClicked }
   }
 
   override fun showPhoneNumber(phoneNumber: String) {
@@ -143,7 +137,13 @@ class LoginPinScreen(context: Context, attrs: AttributeSet) : RelativeLayout(con
   }
 
   override fun goBackToRegistrationScreen() {
-    screenRouter.pop()
+    backstack.goBack()
+  }
+
+  override fun onBackEvent(): Boolean {
+    otherEvents.onNext(PinBackClicked)
+
+    return true
   }
 
   interface Injector {

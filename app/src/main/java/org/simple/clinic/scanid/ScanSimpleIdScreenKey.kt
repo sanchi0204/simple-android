@@ -6,7 +6,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class ScanSimpleIdScreenKey : FullScreenKey {
+class ScanSimpleIdScreenKey : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "ScanSimpleId"

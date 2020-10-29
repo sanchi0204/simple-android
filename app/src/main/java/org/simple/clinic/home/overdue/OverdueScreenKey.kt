@@ -7,7 +7,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class OverdueScreenKey : FullScreenKey, Parcelable {
+class OverdueScreenKey : FullScreenKey(), Parcelable {
 
   @IgnoredOnParcel
   override val analyticsName = "Overdue"

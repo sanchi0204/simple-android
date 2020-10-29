@@ -9,7 +9,7 @@ import org.simple.clinic.user.OngoingRegistrationEntry
 @Parcelize
 data class RegistrationLocationPermissionScreenKey(
     val ongoingRegistrationEntry: OngoingRegistrationEntry
-) : FullScreenKey {
+) : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "Registration Location Permission"

@@ -8,7 +8,7 @@ import org.simple.clinic.router.screen.FullScreenKey
 import java.util.UUID
 
 @Parcelize
-data class PrescribedDrugsScreenKey(val patientUuid: UUID) : FullScreenKey, Parcelable {
+data class PrescribedDrugsScreenKey(val patientUuid: UUID) : FullScreenKey(), Parcelable {
 
   @IgnoredOnParcel
   override val analyticsName = "Patient Drugs"

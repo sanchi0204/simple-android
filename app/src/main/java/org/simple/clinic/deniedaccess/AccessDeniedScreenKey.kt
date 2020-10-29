@@ -7,7 +7,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-data class AccessDeniedScreenKey(val fullName: String) : FullScreenKey, Parcelable {
+data class AccessDeniedScreenKey(val fullName: String) : FullScreenKey(), Parcelable {
 
   @IgnoredOnParcel
   override val analyticsName = "Access Denied"

@@ -10,7 +10,7 @@ import java.util.UUID
 @Parcelize
 data class BloodPressureHistoryScreenKey(
     val patientUuid: UUID
-) : FullScreenKey, Parcelable {
+) : FullScreenKey(), Parcelable {
 
   @IgnoredOnParcel
   override val analyticsName: String = "Blood Pressure History"

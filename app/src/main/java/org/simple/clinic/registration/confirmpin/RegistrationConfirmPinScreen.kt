@@ -8,6 +8,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.RelativeLayout
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.editorActions
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
 import kotlinx.android.synthetic.main.screen_registration_confirm_pin.view.*
@@ -15,9 +16,9 @@ import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.SECURITY_PIN_LENGTH
 import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
+import org.simple.clinic.navigation.ScreenKeyProvider
 import org.simple.clinic.registration.location.RegistrationLocationPermissionScreenKey
 import org.simple.clinic.registration.pin.RegistrationPinScreenKey
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.user.OngoingRegistrationEntry
 import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.widgets.hideKeyboard
@@ -30,7 +31,10 @@ class RegistrationConfirmPinScreen(
 ) : RelativeLayout(context, attrs), RegistrationConfirmPinUi, RegistrationConfirmPinUiActions {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
+
+  @Inject
+  lateinit var screenKeyProvider: ScreenKeyProvider
 
   @Inject
   lateinit var effectHandlerFactory: RegistrationConfirmPinEffectHandler.Factory
@@ -47,7 +51,7 @@ class RegistrationConfirmPinScreen(
 
   private val delegate by unsafeLazy {
     val uiRenderer = RegistrationConfirmPinUiRenderer(this)
-    val screenKey = screenRouter.key<RegistrationConfirmPinScreenKey>(this)
+    val screenKey = screenKeyProvider.provide<RegistrationConfirmPinScreenKey>(this)
 
     MobiusDelegate.forView(
         events = events.ofType(),
@@ -67,9 +71,7 @@ class RegistrationConfirmPinScreen(
 
     context.injector<Injector>().inject(this)
 
-    backButton.setOnClickListener {
-      screenRouter.pop()
-    }
+    backButton.setOnClickListener { backstack.goBack() }
 
     // Showing the keyboard again in case the user returns from location permission screen.
     confirmPinEditText.showKeyboard()
@@ -111,6 +113,7 @@ class RegistrationConfirmPinScreen(
 
     val pinAutoSubmits = confirmPinEditText
         .textChanges()
+        .doOnNext { it }
         // Because PIN is auto-submitted when 4 digits are entered, restoring the
         // existing PIN will immediately take the user to the next screen.
         .skip(1)
@@ -131,11 +134,11 @@ class RegistrationConfirmPinScreen(
 
   override fun openFacilitySelectionScreen(entry: OngoingRegistrationEntry) {
     hideKeyboard()
-    screenRouter.push(RegistrationLocationPermissionScreenKey(entry))
+    backstack.goTo(RegistrationLocationPermissionScreenKey(entry))
   }
 
   override fun goBackToPinScreen(entry: OngoingRegistrationEntry) {
-    screenRouter.replaceKeyOfSameType(RegistrationPinScreenKey(entry))
+    backstack.goUp(RegistrationPinScreenKey(entry))
   }
 
   interface Injector {

@@ -10,7 +10,7 @@ import java.util.UUID
 class TeleconsultSharePrescriptionScreenKey(
     val patientUuid: UUID,
     val medicalInstructions : String?
-): FullScreenKey {
+): FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName: String = "Teleconsultation Share Prescription Screen"

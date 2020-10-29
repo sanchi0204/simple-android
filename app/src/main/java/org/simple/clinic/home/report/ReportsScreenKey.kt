@@ -7,7 +7,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class ReportsScreenKey  : FullScreenKey, Parcelable{
+class ReportsScreenKey  : FullScreenKey(), Parcelable{
 
   @IgnoredOnParcel
   override val analyticsName = "Reports"

@@ -9,7 +9,7 @@ import org.simple.clinic.router.screen.FullScreenKey
 // TODO: Remove added otp property
 // Temporarily added to stop the current login flow from breaking
 @Parcelize
-data class LoginPinScreenKey(val otp: String = "") : FullScreenKey, Parcelable {
+data class LoginPinScreenKey(val otp: String = "") : FullScreenKey(), Parcelable {
 
   @IgnoredOnParcel
   override val analyticsName = "Login PIN Entry"

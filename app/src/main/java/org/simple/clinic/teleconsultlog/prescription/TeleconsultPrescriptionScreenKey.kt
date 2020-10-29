@@ -10,7 +10,7 @@ import java.util.UUID
 data class TeleconsultPrescriptionScreenKey(
     val patientUuid: UUID,
     val teleconsultRecordId: UUID
-) : FullScreenKey {
+) : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName: String = "Teleconsultation Prescription"

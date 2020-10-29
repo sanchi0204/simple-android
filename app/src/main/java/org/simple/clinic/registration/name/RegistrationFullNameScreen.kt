@@ -9,6 +9,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.RelativeLayout
 import com.jakewharton.rxbinding3.widget.editorActions
 import com.jakewharton.rxbinding3.widget.textChanges
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.ofType
 import kotlinx.android.synthetic.main.screen_registration_name.view.*
@@ -16,8 +17,8 @@ import org.simple.clinic.R
 import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
+import org.simple.clinic.navigation.ScreenKeyProvider
 import org.simple.clinic.registration.pin.RegistrationPinScreenKey
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.user.OngoingRegistrationEntry
 import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.widgets.setTextAndCursor
@@ -29,7 +30,10 @@ class RegistrationFullNameScreen(
 ) : RelativeLayout(context, attrs), RegistrationNameUi, RegistrationNameUiActions {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
+
+  @Inject
+  lateinit var screenKeyProvider: ScreenKeyProvider
 
   @Inject
   lateinit var effectHandlerFactory: RegistrationNameEffectHandler.Factory
@@ -47,7 +51,7 @@ class RegistrationFullNameScreen(
   private val delegate: MobiusDelegate<RegistrationNameModel, RegistrationNameEvent, RegistrationNameEffect> by unsafeLazy {
     val uiRenderer = RegistrationNameUiRenderer(this)
 
-    val screenKey = screenRouter.key<RegistrationNameScreenKey>(this)
+    val screenKey = screenKeyProvider.provide<RegistrationNameScreenKey>(this)
 
     MobiusDelegate.forView(
         events = events.ofType(),
@@ -66,9 +70,7 @@ class RegistrationFullNameScreen(
     }
     context.injector<Injector>().inject(this)
 
-    backButton.setOnClickListener {
-      screenRouter.pop()
-    }
+    backButton.setOnClickListener { backstack.goBack() }
 
     cardViewContentLayout.layoutTransition.setDuration(200)
     cardViewContentLayout.layoutTransition.setStagger(LayoutTransition.CHANGE_APPEARING, 0)
@@ -122,7 +124,7 @@ class RegistrationFullNameScreen(
   }
 
   override fun openRegistrationPinEntryScreen(registrationEntry: OngoingRegistrationEntry) {
-    screenRouter.push(RegistrationPinScreenKey(registrationEntry))
+    backstack.goTo(RegistrationPinScreenKey(registrationEntry))
   }
 
   interface Injector {

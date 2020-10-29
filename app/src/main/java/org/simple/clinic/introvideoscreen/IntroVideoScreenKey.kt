@@ -6,7 +6,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class IntroVideoScreenKey : FullScreenKey {
+class IntroVideoScreenKey : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "Onboarding Intro Video"

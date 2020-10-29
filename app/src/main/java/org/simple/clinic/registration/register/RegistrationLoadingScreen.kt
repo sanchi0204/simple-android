@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.jakewharton.rxbinding3.view.clicks
+import com.zhuinden.simplestack.Backstack
 import io.reactivex.rxkotlin.ofType
 import kotlinx.android.synthetic.main.screen_registration_loading.view.*
 import org.simple.clinic.R
@@ -14,7 +15,6 @@ import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.di.injector
 import org.simple.clinic.main.TheActivity
 import org.simple.clinic.mobius.MobiusDelegate
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.util.disableAnimations
 import org.simple.clinic.util.unsafeLazy
 import javax.inject.Inject
@@ -25,7 +25,7 @@ class RegistrationLoadingScreen(
 ) : LinearLayout(context, attrs), RegistrationLoadingUi, RegistrationLoadingUiActions {
 
   @Inject
-  lateinit var screenRouter: ScreenRouter
+  lateinit var backstack: Backstack
 
   @Inject
   lateinit var effectHandlerFactory: RegistrationLoadingEffectHandler.Factory
@@ -57,9 +57,7 @@ class RegistrationLoadingScreen(
 
     context.injector<Injector>().inject(this)
 
-    loaderBack.setOnClickListener {
-      screenRouter.pop()
-    }
+    loaderBack.setOnClickListener { backstack.goBack() }
   }
 
   override fun onAttachedToWindow() {

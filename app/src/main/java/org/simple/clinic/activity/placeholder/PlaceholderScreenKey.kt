@@ -20,7 +20,7 @@ import org.simple.clinic.router.screen.ScreenRouter
  * // TODO(vs): 2019-10-23 Either remove the requirement from ScreenRouter or remove Flow
  **/
 @Parcelize
-class PlaceholderScreenKey : FullScreenKey {
+class PlaceholderScreenKey : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName: String = "Placeholder"

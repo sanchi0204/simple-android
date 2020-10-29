@@ -6,7 +6,7 @@ import org.simple.clinic.R
 import org.simple.clinic.router.screen.FullScreenKey
 
 @Parcelize
-class SelectCountryScreenKey : FullScreenKey {
+class SelectCountryScreenKey : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName: String = "Select Country"

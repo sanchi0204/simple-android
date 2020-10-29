@@ -4,25 +4,26 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.zhuinden.simplestack.Backstack
+import com.zhuinden.simplestack.GlobalServices
+import com.zhuinden.simplestack.SimpleStateChanger
+import com.zhuinden.simplestack.StateChange
+import com.zhuinden.simplestack.navigator.Navigator
+import com.zhuinden.simplestackextensions.fragments.DefaultFragmentStateChanger
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import io.reactivex.Observable
 import org.simple.clinic.ClinicApp
-import org.simple.clinic.R
 import org.simple.clinic.di.InjectorProviderContextWrapper
 import org.simple.clinic.empty.EmptyScreenKey
-import org.simple.clinic.feature.Feature
 import org.simple.clinic.feature.Features
 import org.simple.clinic.mobius.MobiusDelegate
+import org.simple.clinic.navigation.BackPressHandler
 import org.simple.clinic.platform.analytics.Analytics
 import org.simple.clinic.registration.phone.RegistrationPhoneScreenKey
 import org.simple.clinic.router.ScreenResultBus
 import org.simple.clinic.router.screen.ActivityPermissionResult
 import org.simple.clinic.router.screen.ActivityResult
 import org.simple.clinic.router.screen.FullScreenKey
-import org.simple.clinic.router.screen.FullScreenKeyChanger
-import org.simple.clinic.router.screen.NestedKeyChanger
-import org.simple.clinic.router.screen.RouterDirection
-import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.selectcountry.SelectCountryScreenKey
 import org.simple.clinic.util.LocaleOverrideContextWrapper
 import org.simple.clinic.util.unsafeLazy
@@ -30,7 +31,7 @@ import org.simple.clinic.util.wrap
 import java.util.Locale
 import javax.inject.Inject
 
-class AuthenticationActivity : AppCompatActivity(), AuthenticationUiActions {
+class AuthenticationActivity : AppCompatActivity(), SimpleStateChanger.NavigationHandler, AuthenticationUiActions {
 
   companion object {
     private const val EXTRA_OPEN_FOR = "AuthenticationActivity.EXTRA_OPEN_FOR"
@@ -57,9 +58,11 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationUiActions {
   @Inject
   lateinit var effectHandlerFactory: AuthenticationEffectHandler.Factory
 
-  private val screenRouter: ScreenRouter by unsafeLazy {
-    ScreenRouter.create(this, NestedKeyChanger(), screenResults)
+  private val fragmentStateChanger by unsafeLazy {
+    DefaultFragmentStateChanger(supportFragmentManager, android.R.id.content)
   }
+
+  private val backstack: Backstack by unsafeLazy { Navigator.getBackstack(this) }
 
   private val screenResults: ScreenResultBus = ScreenResultBus()
 
@@ -81,6 +84,17 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationUiActions {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     delegate.onRestoreInstanceState(savedInstanceState)
+
+    val navigationServices = GlobalServices
+        .builder()
+        .addService("backpress", BackPressHandler(android.R.id.content, supportFragmentManager))
+        .build()
+
+    Navigator
+        .configure()
+        .setGlobalServices(navigationServices)
+        .setStateChanger(SimpleStateChanger(this))
+        .install(this, findViewById(android.R.id.content), listOf(EmptyScreenKey()))
   }
 
   override fun attachBaseContext(baseContext: Context) {
@@ -88,7 +102,6 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationUiActions {
 
     val wrappedContext = baseContext
         .wrap { LocaleOverrideContextWrapper.wrap(it, locale) }
-        .wrap { wrapContextWithRouter(it) }
         .wrap { InjectorProviderContextWrapper.wrap(it, component) }
         .wrap { ViewPumpContextWrapper.wrap(it) }
 
@@ -109,20 +122,9 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationUiActions {
     component = ClinicApp.appComponent
         .authenticationActivityComponent()
         .activity(this)
-        .screenRouter(screenRouter)
+        .screenResults(screenResults)
         .build()
     component.inject(this)
-  }
-
-  private fun wrapContextWithRouter(baseContext: Context): Context {
-    screenRouter.registerKeyChanger(FullScreenKeyChanger(
-        activity = this,
-        screenLayoutContainerRes = android.R.id.content,
-        screenBackgroundRes = R.color.window_background,
-        onKeyChange = ::onScreenChanged
-    ))
-
-    return screenRouter.installInContext(baseContext, EmptyScreenKey())
   }
 
   private fun onScreenChanged(outgoing: FullScreenKey?, incoming: FullScreenKey) {
@@ -142,30 +144,26 @@ class AuthenticationActivity : AppCompatActivity(), AuthenticationUiActions {
   }
 
   override fun onBackPressed() {
-    val interceptCallback = screenRouter.offerBackPressToInterceptors()
-    if (interceptCallback.intercepted) {
-      return
+    if (!Navigator.onBackPressed(this)) {
+      super.onBackPressed()
     }
-    val popCallback = screenRouter.pop()
-    if (popCallback.popped) {
-      return
-    }
-    super.onBackPressed()
   }
 
   override fun onSaveInstanceState(outState: Bundle) {
-    if (features.isEnabled(Feature.LogSavedStateSizes)) {
-      screenRouter.logSizesOfSavedStates()
-    }
     delegate.onSaveInstanceState(outState)
     super.onSaveInstanceState(outState)
   }
 
   override fun openCountrySelectionScreen() {
-    screenRouter.clearHistoryAndPush(SelectCountryScreenKey(), RouterDirection.REPLACE)
+    backstack.setHistory(listOf(SelectCountryScreenKey()), StateChange.REPLACE)
   }
 
   override fun openRegistrationPhoneScreen() {
-    screenRouter.clearHistoryAndPush(RegistrationPhoneScreenKey(), RouterDirection.REPLACE)
+    backstack.setHistory(listOf(RegistrationPhoneScreenKey()), StateChange.REPLACE)
+  }
+
+  override fun onNavigationEvent(stateChange: StateChange) {
+    fragmentStateChanger.handleStateChange(stateChange)
+    onScreenChanged(stateChange.topPreviousKey(), stateChange.topNewKey())
   }
 }

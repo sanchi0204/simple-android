@@ -11,7 +11,7 @@ import java.util.UUID
 data class TeleConsultSuccessScreenKey(
     val patientUuid: UUID,
     val teleconsultRecordId: UUID
-) : Parcelable, FullScreenKey {
+) : Parcelable, FullScreenKey() {
   @IgnoredOnParcel
   override val analyticsName: String = "TeleConsultation Success"
 

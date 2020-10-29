@@ -33,11 +33,14 @@ import org.simple.clinic.home.report.ReportsScreen
 import org.simple.clinic.login.applock.AppLockScreen
 import org.simple.clinic.login.applock.ConfirmResetPinDialog
 import org.simple.clinic.medicalhistory.newentry.NewMedicalHistoryScreen
+import org.simple.clinic.navigation.ScreenKeyProvider
+import org.simple.clinic.navigation.ScreenRouterBasedScreenKeyProvider
 import org.simple.clinic.newentry.PatientEntryScreen
 import org.simple.clinic.newentry.country.di.InputFieldsFactoryModule
 import org.simple.clinic.onboarding.OnboardingScreenInjector
 import org.simple.clinic.recentpatient.RecentPatientsScreen
 import org.simple.clinic.recentpatientsview.RecentPatientsView
+import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.scanid.ScanSimpleIdScreen
 import org.simple.clinic.search.PatientSearchScreen
 import org.simple.clinic.search.results.PatientSearchResultsScreen
@@ -145,4 +148,7 @@ class TheActivityModule {
 
   @Provides
   fun fragmentManager(activity: AppCompatActivity): FragmentManager = activity.supportFragmentManager
+
+  @Provides
+  fun screenKeyProvider(screenRouter: ScreenRouter): ScreenKeyProvider = ScreenRouterBasedScreenKeyProvider(screenRouter)
 }

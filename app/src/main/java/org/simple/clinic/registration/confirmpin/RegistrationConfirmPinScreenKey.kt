@@ -7,7 +7,7 @@ import org.simple.clinic.router.screen.FullScreenKey
 import org.simple.clinic.user.OngoingRegistrationEntry
 
 @Parcelize
-data class RegistrationConfirmPinScreenKey(val registrationEntry: OngoingRegistrationEntry) : FullScreenKey {
+data class RegistrationConfirmPinScreenKey(val registrationEntry: OngoingRegistrationEntry) : FullScreenKey() {
 
   @IgnoredOnParcel
   override val analyticsName = "Registration Confirm PIN"
