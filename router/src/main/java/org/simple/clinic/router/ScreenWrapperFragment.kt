@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.zhuinden.simplestack.ScopedServices
 import org.simple.clinic.router.screen.FullScreenKey
 
 /**
@@ -12,7 +13,7 @@ import org.simple.clinic.router.screen.FullScreenKey
  * we can migrate older screens to fragments over time. Do not use this
  * for new screens.
  **/
-class ScreenWrapperFragment : Fragment() {
+class ScreenWrapperFragment : Fragment(), ScopedServices.HandlesBack {
 
   companion object {
     private const val ARG_SCREEN_KEY = "ScreenWrapperFragment.ARG_SCREEN_KEY"
@@ -39,5 +40,14 @@ class ScreenWrapperFragment : Fragment() {
       savedInstanceState: Bundle?
   ): View {
     return inflater.inflate(key.layoutRes(), container, false)
+  }
+
+  override fun onBackEvent(): Boolean {
+    val contentView = requireView()
+
+    return if (contentView is ScopedServices.HandlesBack)
+      contentView.onBackEvent()
+    else
+      false
   }
 }
