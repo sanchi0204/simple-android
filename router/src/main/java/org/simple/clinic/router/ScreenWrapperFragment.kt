@@ -29,7 +29,7 @@ class ScreenWrapperFragment : Fragment() {
     }
   }
 
-  private val key by lazy(LazyThreadSafetyMode.NONE) {
+  val key by lazy(LazyThreadSafetyMode.NONE) {
     requireArguments().getParcelable<FullScreenKey>(ARG_SCREEN_KEY)!!
   }
 
