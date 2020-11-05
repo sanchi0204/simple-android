@@ -7,6 +7,6 @@ import org.simple.clinic.mobius.first
 class RegistrationNameInit : Init<RegistrationNameModel, RegistrationNameEffect> {
 
   override fun init(model: RegistrationNameModel): First<RegistrationNameModel, RegistrationNameEffect> {
-    return first(model, PrefillFields(model.ongoingRegistrationEntry))
+    return first(model)
   }
 }

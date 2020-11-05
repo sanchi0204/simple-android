@@ -53,23 +53,7 @@ class RegistrationNameScreenLogicTest {
 
     // then
     verify(uiActions).openRegistrationPinEntryScreen(entryWithName)
-    verify(uiActions).preFillUserDetails(currentOngoingRegistrationEntry)
     verify(ui, times(2)).hideValidationError()
-    verifyNoMoreInteractions(ui)
-    verifyNoMoreInteractions(uiActions)
-  }
-
-  @Test
-  fun `when screen is created then user's existing details should be pre-filled`() {
-    // given
-    val ongoingEntry = currentOngoingRegistrationEntry.withName("Ashok Kumar")
-
-    // when
-    setupController(ongoingRegistrationEntry = ongoingEntry)
-
-    // then
-    verify(uiActions).preFillUserDetails(ongoingEntry)
-    verify(ui).hideValidationError()
     verifyNoMoreInteractions(ui)
     verifyNoMoreInteractions(uiActions)
   }
@@ -82,7 +66,6 @@ class RegistrationNameScreenLogicTest {
 
     // when
     setupController()
-    verify(uiActions).preFillUserDetails(currentOngoingRegistrationEntry)
     uiEvents.onNext(RegistrationFullNameTextChanged(invalidName))
     uiEvents.onNext(RegistrationFullNameDoneClicked())
 
@@ -111,7 +94,6 @@ class RegistrationNameScreenLogicTest {
     uiEvents.onNext(RegistrationFullNameDoneClicked())
 
     // then
-    verify(uiActions).preFillUserDetails(currentOngoingRegistrationEntry)
     verify(ui).hideValidationError()
     verify(ui).showEmptyNameValidationError()
     verify(uiActions, never()).openRegistrationPinEntryScreen(any())
@@ -126,7 +108,6 @@ class RegistrationNameScreenLogicTest {
     uiEvents.onNext(RegistrationFullNameTextChanged(""))
 
     // then
-    verify(uiActions).preFillUserDetails(currentOngoingRegistrationEntry)
     verify(ui).hideValidationError()
     verifyNoMoreInteractions(ui)
     verifyNoMoreInteractions(uiActions)
