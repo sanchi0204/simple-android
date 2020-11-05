@@ -100,11 +100,6 @@
       android:windowSoftInputMode="adjustResize" />
 
     <activity
-      android:name=".registration.confirmfacility.ConfirmFacilitySheet"
-      android:theme="@style/Clinic.V2.Theme.BottomSheetActivity"
-      android:windowSoftInputMode="adjustResize" />
-
-    <activity
       android:name=".facility.alertchange.AlertFacilityChangeSheet"
       android:theme="@style/Clinic.V2.Theme.BottomSheetActivity"
       android:windowSoftInputMode="adjustResize" />

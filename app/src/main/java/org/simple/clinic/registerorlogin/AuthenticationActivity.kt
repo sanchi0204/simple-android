@@ -9,7 +9,6 @@ import com.zhuinden.simplestack.GlobalServices
 import com.zhuinden.simplestack.SimpleStateChanger
 import com.zhuinden.simplestack.StateChange
 import com.zhuinden.simplestack.navigator.Navigator
-import com.zhuinden.simplestackextensions.fragments.DefaultFragmentStateChanger
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import io.reactivex.Observable
 import org.simple.clinic.ClinicApp
@@ -18,6 +17,7 @@ import org.simple.clinic.empty.EmptyScreenKey
 import org.simple.clinic.feature.Features
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.navigation.BackPressHandler
+import org.simple.clinic.navigation.BottomSheetSupportFragmentStateChanger
 import org.simple.clinic.platform.analytics.Analytics
 import org.simple.clinic.registration.phone.RegistrationPhoneScreenKey
 import org.simple.clinic.router.ScreenResultBus
@@ -59,7 +59,7 @@ class AuthenticationActivity : AppCompatActivity(), SimpleStateChanger.Navigatio
   lateinit var effectHandlerFactory: AuthenticationEffectHandler.Factory
 
   private val fragmentStateChanger by unsafeLazy {
-    DefaultFragmentStateChanger(supportFragmentManager, android.R.id.content)
+    BottomSheetSupportFragmentStateChanger(supportFragmentManager, android.R.id.content)
   }
 
   private val backstack: Backstack by unsafeLazy { Navigator.getBackstack(this) }

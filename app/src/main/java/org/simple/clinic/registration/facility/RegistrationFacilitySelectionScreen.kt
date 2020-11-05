@@ -15,10 +15,8 @@ import org.simple.clinic.di.injector
 import org.simple.clinic.introvideoscreen.IntroVideoScreenKey
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.navigation.ScreenKeyProvider
-import org.simple.clinic.registration.confirmfacility.ConfirmFacilitySheet
+import org.simple.clinic.registration.confirmfacility.ConfirmFacilitySheetKey
 import org.simple.clinic.router.ScreenResultBus
-import org.simple.clinic.router.screen.ActivityResult
-import org.simple.clinic.util.extractSuccessful
 import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.widgets.UiEvent
 import java.util.UUID
@@ -103,13 +101,14 @@ class RegistrationFacilitySelectionScreen(
   }
 
   private fun registrationFacilityConfirmations(): Observable<UiEvent> {
-    return screenResults
+    return Observable.never()
+    /*return screenResults
         .streamResults()
         .ofType<ActivityResult>()
         .extractSuccessful(CONFIRM_FACILITY_SHEET) { intent ->
           val confirmedFacilityUuid = ConfirmFacilitySheet.confirmedFacilityUuid(intent)
           RegistrationFacilityConfirmed(confirmedFacilityUuid)
-        }
+        }*/
   }
 
   override fun openIntroVideoScreen() {
@@ -117,8 +116,9 @@ class RegistrationFacilitySelectionScreen(
   }
 
   override fun showConfirmFacilitySheet(facilityUuid: UUID, facilityName: String) {
-    val intent = ConfirmFacilitySheet.intentForConfirmFacilitySheet(context, facilityUuid, facilityName)
-    activity.startActivityForResult(intent, CONFIRM_FACILITY_SHEET)
+    val key = ConfirmFacilitySheetKey(facilityUuid, facilityName)
+
+    backstack.goTo(key)
   }
 
   companion object {

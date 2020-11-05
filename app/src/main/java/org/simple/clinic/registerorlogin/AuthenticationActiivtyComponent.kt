@@ -9,6 +9,7 @@ import org.simple.clinic.facilitypicker.FacilityPickerView
 import org.simple.clinic.introvideoscreen.IntroVideoScreenInjector
 import org.simple.clinic.login.pin.LoginPinScreen
 import org.simple.clinic.navigation.NavigationModule
+import org.simple.clinic.registration.confirmfacility.ConfirmFacilitySheet
 import org.simple.clinic.registration.confirmpin.RegistrationConfirmPinScreen
 import org.simple.clinic.registration.facility.RegistrationFacilitySelectionScreen
 import org.simple.clinic.registration.location.RegistrationLocationPermissionScreen
@@ -38,7 +39,8 @@ interface AuthenticationActivityComponent :
     PinEntryCardView.Injector,
     LoggedOutOfDeviceDialog.Injector,
     SelectCountryScreenInjector,
-    FacilityPickerView.Injector {
+    FacilityPickerView.Injector,
+    ConfirmFacilitySheet.Injector {
   fun inject(target: AuthenticationActivity)
 
   @Subcomponent.Builder
