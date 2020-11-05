@@ -61,18 +61,6 @@ class RegistrationPhoneScreenLogicTest {
   }
 
   @Test
-  fun `when screen is created then existing details should be pre-filled`() {
-    // given
-    val ongoingEntry = defaultOngoingEntry.withPhoneNumber("123")
-
-    // when
-    setupController(ongoingRegistrationEntry = ongoingEntry)
-
-    // then
-    verify(ui).preFillUserDetails(ongoingEntry)
-  }
-
-  @Test
   fun `when proceed is clicked with a valid number then the ongoing entry should be updated and then the next screen should be opened`() {
     // given
     val validNumber = "1234567890"

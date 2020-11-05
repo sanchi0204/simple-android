@@ -6,8 +6,6 @@ import java.util.UUID
 
 sealed class RegistrationPhoneEffect
 
-data class PrefillFields(val entry: OngoingRegistrationEntry) : RegistrationPhoneEffect()
-
 data class ValidateEnteredNumber(val number: String) : RegistrationPhoneEffect()
 
 object SyncFacilities : RegistrationPhoneEffect()

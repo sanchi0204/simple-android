@@ -27,7 +27,6 @@ import org.simple.clinic.registration.phone.loggedout.LoggedOutOfDeviceDialog
 import org.simple.clinic.user.OngoingRegistrationEntry
 import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.uuid.UuidGenerator
-import org.simple.clinic.widgets.setTextAndCursor
 import org.simple.clinic.widgets.showKeyboard
 import javax.inject.Inject
 
@@ -113,10 +112,6 @@ class RegistrationPhoneScreen(
       phoneNumberEditText
           .editorActions { it == EditorInfo.IME_ACTION_DONE }
           .map { RegistrationPhoneDoneClicked() }
-
-  override fun preFillUserDetails(ongoingEntry: OngoingRegistrationEntry) {
-    phoneNumberEditText.setTextAndCursor(ongoingEntry.phoneNumber)
-  }
 
   override fun openRegistrationNameEntryScreen(currentRegistrationEntry: OngoingRegistrationEntry) {
     backstack.goTo(RegistrationNameScreenKey(currentRegistrationEntry))
