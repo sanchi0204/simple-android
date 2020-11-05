@@ -1,16 +1,11 @@
 package org.simple.clinic.registration.confirmpin
 
-import kotlinx.android.parcel.IgnoredOnParcel
+import com.zhuinden.simplestackextensions.fragments.DefaultFragmentKey
 import kotlinx.android.parcel.Parcelize
-import org.simple.clinic.R
-import org.simple.clinic.router.screen.FullScreenKey
 import org.simple.clinic.user.OngoingRegistrationEntry
 
 @Parcelize
-data class RegistrationConfirmPinScreenKey(val registrationEntry: OngoingRegistrationEntry) : FullScreenKey() {
+data class RegistrationConfirmPinScreenKey(val registrationEntry: OngoingRegistrationEntry) : DefaultFragmentKey() {
 
-  @IgnoredOnParcel
-  override val analyticsName = "Registration Confirm PIN"
-
-  override fun layoutRes() = R.layout.screen_registration_confirm_pin
+  override fun instantiateFragment() = RegistrationConfirmPinScreen()
 }

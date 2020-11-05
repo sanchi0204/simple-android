@@ -1,75 +1,52 @@
 package org.simple.clinic.registration.confirmpin
 
-import android.content.Context
-import android.os.Parcelable
-import android.util.AttributeSet
+import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.RelativeLayout
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.editorActions
 import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
-import io.reactivex.rxkotlin.ofType
-import kotlinx.android.synthetic.main.screen_registration_confirm_pin.view.*
+import io.reactivex.rxkotlin.cast
+import kotlinx.android.synthetic.main.screen_registration_confirm_pin.*
+import org.simple.clinic.R
 import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.SECURITY_PIN_LENGTH
 import org.simple.clinic.di.injector
-import org.simple.clinic.mobius.MobiusDelegate
-import org.simple.clinic.navigation.ScreenKeyProvider
+import org.simple.clinic.navigation.FullScreenFragment
 import org.simple.clinic.registration.location.RegistrationLocationPermissionScreenKey
 import org.simple.clinic.registration.pin.RegistrationPinScreenKey
 import org.simple.clinic.user.OngoingRegistrationEntry
-import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.widgets.hideKeyboard
 import org.simple.clinic.widgets.showKeyboard
 import javax.inject.Inject
 
-class RegistrationConfirmPinScreen(
-    context: Context,
-    attrs: AttributeSet
-) : RelativeLayout(context, attrs), RegistrationConfirmPinUi, RegistrationConfirmPinUiActions {
+class RegistrationConfirmPinScreen :
+    FullScreenFragment<RegistrationConfirmPinModel, RegistrationConfirmPinEvent, RegistrationConfirmPinEffect>(R.layout.screen_registration_confirm_pin),
+    RegistrationConfirmPinUi,
+    RegistrationConfirmPinUiActions {
 
   @Inject
   lateinit var backstack: Backstack
 
   @Inject
-  lateinit var screenKeyProvider: ScreenKeyProvider
-
-  @Inject
   lateinit var effectHandlerFactory: RegistrationConfirmPinEffectHandler.Factory
 
-  private val events by unsafeLazy {
-    Observable
-        .merge(
-            confirmPinTextChanges(),
-            resetPinClicks(),
-            doneClicks()
-        )
-        .compose(ReportAnalyticsEvents())
+  private val uiRenderer = RegistrationConfirmPinUiRenderer(this)
+
+  override fun defaultModel(): RegistrationConfirmPinModel {
+    val screenKey = getKey<RegistrationConfirmPinScreenKey>()
+
+    return RegistrationConfirmPinModel.create(screenKey.registrationEntry)
   }
 
-  private val delegate by unsafeLazy {
-    val uiRenderer = RegistrationConfirmPinUiRenderer(this)
-    val screenKey = screenKeyProvider.provide<RegistrationConfirmPinScreenKey>(this)
-
-    MobiusDelegate.forView(
-        events = events.ofType(),
-        defaultModel = RegistrationConfirmPinModel.create(screenKey.registrationEntry),
-        update = RegistrationConfirmPinUpdate(),
-        init = RegistrationConfirmPinInit(),
-        effectHandler = effectHandlerFactory.create(this).build(),
-        modelUpdateListener = uiRenderer::render
-    )
+  override fun onModelUpdate(model: RegistrationConfirmPinModel) {
+    uiRenderer.render(model)
   }
 
-  override fun onFinishInflate() {
-    super.onFinishInflate()
-    if (isInEditMode) {
-      return
-    }
-
-    context.injector<Injector>().inject(this)
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    requireContext().injector<Injector>().inject(this)
+    super.onViewCreated(view, savedInstanceState)
 
     backButton.setOnClickListener { backstack.goBack() }
 
@@ -77,23 +54,20 @@ class RegistrationConfirmPinScreen(
     confirmPinEditText.showKeyboard()
   }
 
-  override fun onAttachedToWindow() {
-    super.onAttachedToWindow()
-    delegate.start()
-  }
+  override fun events() = Observable
+      .merge(
+          confirmPinTextChanges(),
+          resetPinClicks(),
+          doneClicks()
+      )
+      .compose(ReportAnalyticsEvents())
+      .cast<RegistrationConfirmPinEvent>()
 
-  override fun onDetachedFromWindow() {
-    super.onDetachedFromWindow()
-    delegate.stop()
-  }
+  override fun createUpdate() = RegistrationConfirmPinUpdate()
 
-  override fun onSaveInstanceState(): Parcelable? {
-    return delegate.onSaveInstanceState(super.onSaveInstanceState())
-  }
+  override fun createInit() = RegistrationConfirmPinInit()
 
-  override fun onRestoreInstanceState(state: Parcelable?) {
-    super.onRestoreInstanceState(delegate.onRestoreInstanceState(state))
-  }
+  override fun createEffectHandler() = effectHandlerFactory.create(this).build()
 
   private fun confirmPinTextChanges() =
       confirmPinEditText
@@ -133,7 +107,7 @@ class RegistrationConfirmPinScreen(
   }
 
   override fun openFacilitySelectionScreen(entry: OngoingRegistrationEntry) {
-    hideKeyboard()
+    requireView().hideKeyboard()
     backstack.goTo(RegistrationLocationPermissionScreenKey(entry))
   }
 

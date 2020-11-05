@@ -27,8 +27,8 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.widget.NestedScrollView
 import com.jakewharton.rxbinding2.widget.RxTextView
 import io.reactivex.Observable
-import java.time.Duration
 import timber.log.Timber
+import java.time.Duration
 
 fun EditText.showKeyboard() {
   postDelayed({
@@ -38,7 +38,7 @@ fun EditText.showKeyboard() {
   }, 100)
 }
 
-fun ViewGroup.hideKeyboard() {
+fun View.hideKeyboard() {
   post {
     val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     inputMethodManager.hideSoftInputFromWindow(windowToken, 0)

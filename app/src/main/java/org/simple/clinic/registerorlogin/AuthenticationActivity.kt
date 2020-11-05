@@ -164,6 +164,14 @@ class AuthenticationActivity : AppCompatActivity(), SimpleStateChanger.Navigatio
 
   override fun onNavigationEvent(stateChange: StateChange) {
     fragmentStateChanger.handleStateChange(stateChange)
-    onScreenChanged(stateChange.topPreviousKey(), stateChange.topNewKey())
+
+    val outgoing: Any? = stateChange.topPreviousKey()
+    val incoming: Any = stateChange.topNewKey()
+
+    // Added temporarily to prevent a crash
+    // TODO (vs) 05/11/20: Decouple reporting of analytics from the type of screen key
+    if(outgoing is FullScreenKey && incoming is FullScreenKey) {
+      onScreenChanged(outgoing, incoming)
+    }
   }
 }
