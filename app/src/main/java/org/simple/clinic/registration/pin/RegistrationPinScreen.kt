@@ -1,96 +1,71 @@
 package org.simple.clinic.registration.pin
 
-import android.content.Context
-import android.os.Parcelable
-import android.util.AttributeSet
+import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.RelativeLayout
 import com.jakewharton.rxbinding3.widget.editorActions
 import com.zhuinden.simplestack.Backstack
 import io.reactivex.Observable
-import io.reactivex.rxkotlin.ofType
-import kotlinx.android.synthetic.main.screen_registration_pin.view.*
+import io.reactivex.rxkotlin.cast
+import kotlinx.android.synthetic.main.screen_registration_pin.*
 import org.simple.clinic.R
 import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.SECURITY_PIN_LENGTH
 import org.simple.clinic.di.injector
-import org.simple.clinic.mobius.MobiusDelegate
-import org.simple.clinic.navigation.ScreenKeyProvider
+import org.simple.clinic.navigation.FullScreenFragment
 import org.simple.clinic.registration.confirmpin.RegistrationConfirmPinScreenKey
 import org.simple.clinic.user.OngoingRegistrationEntry
-import org.simple.clinic.util.unsafeLazy
 import javax.inject.Inject
 
-class RegistrationPinScreen(
-    context: Context,
-    attrs: AttributeSet
-) : RelativeLayout(context, attrs), RegistrationPinUi, RegistrationPinUiActions {
+class RegistrationPinScreen :
+    FullScreenFragment<RegistrationPinModel, RegistrationPinEvent, RegistrationPinEffect>(R.layout.screen_registration_pin),
+    RegistrationPinUi,
+    RegistrationPinUiActions {
 
   @Inject
   lateinit var backstack: Backstack
 
   @Inject
-  lateinit var screenKeyProvider: ScreenKeyProvider
-
-  @Inject
   lateinit var effectHandlerFactory: RegistrationPinEffectHandler.Factory
 
-  private val events by unsafeLazy {
-    Observable
-        .merge(
-            pinTextChanges(),
-            doneClicks()
-        )
-        .compose(ReportAnalyticsEvents())
-        .share()
-  }
+  private val uiRenderer = RegistrationPinUiRenderer(this)
 
-  private val delegate: MobiusDelegate<RegistrationPinModel, RegistrationPinEvent, RegistrationPinEffect> by unsafeLazy {
-    val uiRenderer = RegistrationPinUiRenderer(this)
-    val screenKey = screenKeyProvider.provide<RegistrationPinScreenKey>(this)
-
-    MobiusDelegate.forView(
-      events = events.ofType(),
-        defaultModel = RegistrationPinModel.create(screenKey.registrationEntry),
-        update = RegistrationPinUpdate(requiredPinLength = SECURITY_PIN_LENGTH),
-        init = RegistrationPinInit(),
-        effectHandler = effectHandlerFactory.create(this).build(),
-        modelUpdateListener = uiRenderer::render
-    )
-  }
-
-  override fun onFinishInflate() {
-    super.onFinishInflate()
-    if (isInEditMode) {
-      return
-    }
-    context.injector<Injector>().inject(this)
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    requireContext().injector<Injector>().inject(this)
+    super.onViewCreated(view, savedInstanceState)
 
     pinEditText.isSaveEnabled = false
 
     backButton.setOnClickListener { backstack.goBack() }
 
-    post { pinEditText.requestFocus() }
+    view.post { pinEditText.requestFocus() }
   }
 
-  override fun onAttachedToWindow() {
-    super.onAttachedToWindow()
-    delegate.start()
+  override fun defaultModel(): RegistrationPinModel {
+    val screenKey = getKey<RegistrationPinScreenKey>()
+
+    return RegistrationPinModel.create(screenKey.registrationEntry)
   }
 
-  override fun onDetachedFromWindow() {
-    delegate.stop()
-    super.onDetachedFromWindow()
+  override fun onModelUpdate(model: RegistrationPinModel) {
+    uiRenderer.render(model)
   }
 
-  override fun onSaveInstanceState(): Parcelable? {
-    return delegate.onSaveInstanceState(super.onSaveInstanceState())
-  }
+  override fun events() = Observable
+      .merge(
+          pinTextChanges(),
+          doneClicks()
+      )
+      .compose(ReportAnalyticsEvents())
+      .cast<RegistrationPinEvent>()
 
-  override fun onRestoreInstanceState(state: Parcelable?) {
-    super.onRestoreInstanceState(delegate.onRestoreInstanceState(state))
-  }
+  override fun createUpdate() = RegistrationPinUpdate(requiredPinLength = SECURITY_PIN_LENGTH)
+
+  override fun createInit() = RegistrationPinInit()
+
+  override fun createEffectHandler() = effectHandlerFactory
+      .create(this)
+      .build()
 
   private fun pinTextChanges() =
       pinEditText
