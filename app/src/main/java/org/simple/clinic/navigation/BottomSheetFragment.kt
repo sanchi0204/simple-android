@@ -1,7 +1,10 @@
 package org.simple.clinic.navigation
 
+import android.app.Dialog
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.KeyEvent.ACTION_UP
+import android.view.KeyEvent.KEYCODE_BACK
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +21,7 @@ import com.spotify.mobius.android.MobiusAndroid
 import com.spotify.mobius.extras.Connectables
 import com.spotify.mobius.functions.Consumer
 import com.spotify.mobius.rx2.RxMobius
+import com.zhuinden.simplestack.Backstack
 import com.zhuinden.simplestackextensions.fragments.DefaultFragmentKey.ARGS_KEY
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -48,6 +52,12 @@ abstract class BottomSheetFragment<M : Parcelable, E, F> : BottomSheetDialogFrag
 
   abstract fun onModelUpdate(model: M)
 
+  abstract fun backstack(): Backstack
+
+  open fun onBackPressed() {
+    backstack().goBack()
+  }
+
   open fun events(): Observable<E> = Observable.never()
 
   open fun createUpdate(): Update<M, E, F> = Update { _, _ -> noChange() }
@@ -58,13 +68,34 @@ abstract class BottomSheetFragment<M : Parcelable, E, F> : BottomSheetDialogFrag
 
   open fun additionalEventSources(): List<EventSource<E>> = emptyList()
 
+  override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    return super.onCreateDialog(savedInstanceState).apply {
+
+      // This is needed because the backstack is not aware of the changes
+      // in the history when the bottom sheet dialog is dismissed in the
+      // normal fashion.
+      setCancelable(false)
+      setCanceledOnTouchOutside(false)
+      setOnKeyListener { _, keyCode, event ->
+        if (event.action == ACTION_UP && keyCode == KEYCODE_BACK) {
+          this@BottomSheetFragment.onBackPressed()
+          true
+        } else false
+      }
+    }
+  }
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    isCancelable = false
+  }
+
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
     return inflater.inflate(layoutResId(), container, false)
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-
     controller.connect(Connectables.contramap({ it }, ::connectViews))
 
     if (savedInstanceState != null) {
@@ -93,7 +124,7 @@ abstract class BottomSheetFragment<M : Parcelable, E, F> : BottomSheetDialogFrag
     outState.putParcelable(KEY_MODEL, controller.model)
   }
 
-  fun <T: BottomSheetFragmentKey> getKey(): T {
+  fun <T : BottomSheetFragmentKey> getKey(): T {
     // Set in `com.zhuinden.simplestackextensions.fragments.DefaultFragmentKey#createFragment`
     return requireArguments().getParcelable<T>(ARGS_KEY)!!
   }
