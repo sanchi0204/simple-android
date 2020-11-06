@@ -54,7 +54,7 @@ abstract class BottomSheetFragment<M : Parcelable, E, F> : BottomSheetDialogFrag
 
   abstract fun backstack(): Backstack
 
-  open fun onBackPressed() {
+  private fun onBackPressed() {
     backstack().goBack()
   }
 
@@ -77,10 +77,10 @@ abstract class BottomSheetFragment<M : Parcelable, E, F> : BottomSheetDialogFrag
       setCancelable(false)
       setCanceledOnTouchOutside(false)
       setOnKeyListener { _, keyCode, event ->
-        if (event.action == ACTION_UP && keyCode == KEYCODE_BACK) {
-          this@BottomSheetFragment.onBackPressed()
-          true
-        } else false
+        if (event.action == ACTION_UP && keyCode == KEYCODE_BACK)
+          backstack().goBack()
+        else
+          false
       }
     }
   }

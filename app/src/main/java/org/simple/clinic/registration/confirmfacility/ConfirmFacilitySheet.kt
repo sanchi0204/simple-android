@@ -3,7 +3,9 @@ package org.simple.clinic.registration.confirmfacility
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.View
+import android.widget.Toast
 import com.zhuinden.simplestack.Backstack
+import com.zhuinden.simplestack.ScopedServices
 import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.sheet_registration_confirm_facility.*
 import org.simple.clinic.R
@@ -13,7 +15,7 @@ import org.simple.clinic.util.unsafeLazy
 import java.util.UUID
 import javax.inject.Inject
 
-class ConfirmFacilitySheet : BottomSheetFragment<EmptyModel, Nothing, Nothing>() {
+class ConfirmFacilitySheet : BottomSheetFragment<EmptyModel, Nothing, Nothing>(), ScopedServices.HandlesBack {
 
   companion object {
 
@@ -48,6 +50,11 @@ class ConfirmFacilitySheet : BottomSheetFragment<EmptyModel, Nothing, Nothing>()
     facilityNameTextView.text = facilityName
     yesButton.setOnClickListener { backstack.goBack() }
     cancelButton.setOnClickListener { backstack.goBack() }
+  }
+
+  override fun onBackEvent(): Boolean {
+    Toast.makeText(requireContext(), "BACK PRESSED!", Toast.LENGTH_SHORT).show()
+    return true
   }
 
   /*override fun onCreate(savedInstanceState: Bundle?) {
