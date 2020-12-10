@@ -15,6 +15,6 @@ data class PatientSearchScreenKey(
   override val analyticsName = "Patient Search"
 
   override fun layoutRes(): Int {
-    return R.layout.screen_patient_search
+    return R.layout.screen_patient_search_old
   }
 }

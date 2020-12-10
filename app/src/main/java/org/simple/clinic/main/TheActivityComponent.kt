@@ -38,7 +38,7 @@ import org.simple.clinic.newentry.country.di.InputFieldsFactoryModule
 import org.simple.clinic.onboarding.OnboardingScreenInjector
 import org.simple.clinic.recentpatient.RecentPatientsScreen
 import org.simple.clinic.recentpatientsview.RecentPatientsView
-import org.simple.clinic.search.PatientSearchScreen
+import org.simple.clinic.search.PatientSearchScreen_Old
 import org.simple.clinic.search.results.PatientSearchResultsScreen
 import org.simple.clinic.searchresultsview.PatientSearchView
 import org.simple.clinic.security.pin.PinEntryCardView
@@ -89,7 +89,7 @@ interface TheActivityComponent :
     ForgotPinCreateNewPinScreen.Injector,
     OverdueScreen.Injector,
     PatientSearchResultsScreen.Injector,
-    PatientSearchScreen.Injector,
+    PatientSearchScreen_Old.Injector,
     ForgotPinConfirmPinScreen.Injector,
     HomeScreen.Injector,
     PatientEntryScreen.Injector,

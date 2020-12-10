@@ -18,7 +18,7 @@ import org.simple.clinic.ReportAnalyticsEvents
 import org.simple.clinic.allpatientsinfacility.AllPatientsInFacilityListScrolled
 import org.simple.clinic.allpatientsinfacility.AllPatientsInFacilitySearchResultClicked
 import org.simple.clinic.allpatientsinfacility.AllPatientsInFacilityView
-import org.simple.clinic.databinding.ScreenPatientSearchBinding
+import org.simple.clinic.databinding.ScreenPatientSearchOldBinding
 import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.patient.PatientSearchCriteria
@@ -36,7 +36,7 @@ import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 
-class PatientSearchScreen(
+class PatientSearchScreen_Old(
     context: Context,
     attrs: AttributeSet
 ) : RelativeLayout(context, attrs), PatientSearchUi, PatientSearchUiActions {
@@ -53,7 +53,7 @@ class PatientSearchScreen(
   @Inject
   lateinit var effectHandlerFactory: PatientSearchEffectHandler.Factory
 
-  private var binding: ScreenPatientSearchBinding? = null
+  private var binding: ScreenPatientSearchOldBinding? = null
 
   private val allPatientsInFacilityView
     get() = binding!!.allPatientsInFacilityView.rootLayout
@@ -104,7 +104,7 @@ class PatientSearchScreen(
       return
     }
 
-    binding = ScreenPatientSearchBinding.bind(this)
+    binding = ScreenPatientSearchOldBinding.bind(this)
 
     context.injector<Injector>().inject(this)
 
@@ -208,6 +208,6 @@ class PatientSearchScreen(
   }
 
   interface Injector {
-    fun inject(target: PatientSearchScreen)
+    fun inject(target: PatientSearchScreen_Old)
   }
 }
