@@ -147,7 +147,9 @@ class Router(
               transaction.detach(fragment)
             }
           } else {
-            transaction.detach(fragment)
+            if ((navRequest != beforeNewTop) || (navRequest == beforeNewTop && newTop.key.type != ScreenKey.ScreenType.Modal)) {
+              transaction.detach(fragment)
+            }
           }
         }
       }
@@ -210,7 +212,7 @@ class Router(
     history = newHistory
 
     val newTopNavRequest = history.top()
-    if(currentTop is ExpectingResult && screenResult != null) {
+    if (currentTop is ExpectingResult && screenResult != null) {
       val targetFragment = fragmentManager.findFragmentByTag(newTopNavRequest.key.fragmentTag)
 
       require(targetFragment != null) { "Could not find fragment for key: [${newTopNavRequest.key}]" }
