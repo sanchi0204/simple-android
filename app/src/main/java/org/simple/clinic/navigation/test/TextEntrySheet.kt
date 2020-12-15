@@ -1,7 +1,10 @@
 package org.simple.clinic.navigation.test
 
+import android.app.Dialog
 import android.os.Bundle
 import android.os.Parcelable
+import android.view.KeyEvent.ACTION_UP
+import android.view.KeyEvent.KEYCODE_BACK
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -40,6 +43,24 @@ class TextEntrySheet : BottomSheetDialogFragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     doneButton.setOnClickListener { router.popWithResult(Succeeded(ResultData(textEntryField.text.toString()))) }
+  }
+
+  override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+    return super.onCreateDialog(savedInstanceState).apply {
+      // This is needed because the backstack is not aware of the changes
+      // in the history when the bottom sheet dialog is dismissed in the
+      // normal fashion.
+      setCancelable(false)
+      setCanceledOnTouchOutside(false)
+      setOnKeyListener { _, keyCode, event ->
+        if (event.action == ACTION_UP && keyCode == KEYCODE_BACK) {
+          router.pop()
+          true
+        } else {
+          false
+        }
+      }
+    }
   }
 
   @Parcelize
