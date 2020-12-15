@@ -86,27 +86,19 @@ class Router(
 
     require(fragment != null) { "Could not find fragment for [$currentTop]" }
 
-    return if (fragment !is HandlesBack) {
-      if (history.requests.size > 1) {
-        pop()
-        true
-      } else {
-        false
-      }
-    } else {
-      val handled = fragment.onBackPressed()
-
-      if (handled) {
-        true
-      } else {
-        if (history.requests.size > 1) {
-          pop()
-          true
-        } else {
-          false
-        }
-      }
+    return when (fragment) {
+      !is HandlesBack -> backPressedWithoutOverriding()
+      else -> fragment.onBackPressed() || backPressedWithoutOverriding()
     }
+  }
+
+  private fun backPressedWithoutOverriding(): Boolean {
+    val areScreensLeftToPop = history.requests.size > 1
+
+    return if (areScreensLeftToPop) {
+      pop()
+      true
+    } else false
   }
 
   private fun executeStateChange(
@@ -130,95 +122,225 @@ class Router(
 
     val currentNavRequests = history.requests
     val newNavRequests = newHistory.requests
-    val newTop = newNavRequests.last()
-    val currentTop = currentNavRequests.last()
-    val beforeNewTop = if (newNavRequests.size > 1) newNavRequests[newNavRequests.lastIndex - 1] else null
+    val newTopScreen = newNavRequests.last()
+    val currentTopScreen = currentNavRequests.last()
+    val lastButOneScreen = if (newNavRequests.size > 1) newNavRequests[newNavRequests.lastIndex - 1] else null
 
-    // Remove old fragments if they are no longer present in the new set of screens
-    currentNavRequests.forEach { navRequest ->
-      val fragment = fragmentManager.findFragmentByTag(navRequest.key.fragmentTag)
+    clearCurrentHistory(
+        currentNavRequests = currentNavRequests,
+        newNavRequests = newNavRequests,
+        transaction = transaction,
+        newTopScreen = newTopScreen,
+        lastButOneScreen = lastButOneScreen
+    )
 
-      if (fragment != null) {
-        if (!newNavRequests.contains(navRequest)) {
-          transaction.remove(fragment)
-        } else if (fragment.isShowing) {
-          if (navRequest == newTop) {
-            if (!currentTop.key.isModal) {
-              transaction.detach(fragment)
-            }
-          } else {
-            if ((navRequest != beforeNewTop) || (navRequest == beforeNewTop && !newTop.key.isModal)) {
-              transaction.detach(fragment)
-            }
-          }
-        }
-      }
-    }
-
-    newNavRequests.forEach { navRequest ->
-      var fragment = fragmentManager.findFragmentByTag(navRequest.key.fragmentTag)
-      if (navRequest == newTop) {
-        if (!navRequest.key.isModal) {
-          if (fragment != null) {
-            if (fragment.isRemoving) { // fragments are quirky, they die asynchronously. Ignore if they're still there.
-              transaction.replace(containerId, navRequest.key.createFragment(), navRequest.key.fragmentTag)
-            } else if (fragment.isDetached) {
-              transaction.attach(fragment)
-            }
-          } else {
-            fragment = navRequest.key.createFragment() // create and add new top if did not exist
-            transaction.add(containerId, fragment, navRequest.key.fragmentTag)
-          }
-        } else if (navRequest.key.isModal) {
-          if (fragment != null) {
-            if (fragment.isRemoving) { // fragments are quirky, they die asynchronously. Ignore if they're still there.
-              transaction.add(navRequest.key.createFragment(), navRequest.key.fragmentTag)
-            } else if (fragment.isDetached) {
-              transaction.attach(fragment)
-            }
-          } else {
-            fragment = navRequest.key.createFragment() // create and add new top if did not exist
-            transaction.add(fragment, navRequest.key.fragmentTag)
-          }
-        }
-      } else {
-        if (!newTop.key.isModal) {
-          if (fragment != null && fragment.isShowing) {
-            transaction.detach(fragment)
-          }
-        } else if (newTop.key.isModal) {
-          // Last but one key should not be detached since the topmost key is a modal
-          // and we want the previous screen to be visible
-          if (navRequest != beforeNewTop && fragment != null && fragment.isShowing) {
-            transaction.detach(fragment)
-          } else if (navRequest == beforeNewTop) {
-            if (fragment == null) {
-              fragment = navRequest.key.createFragment()
-              transaction.replace(containerId, fragment, navRequest.key.fragmentTag)
-            } else {
-              if (fragment.isRemoving) {
-                transaction.add(navRequest.key.createFragment(), navRequest.key.fragmentTag)
-              } else {
-                transaction.attach(fragment)
-              }
-            }
-          }
-        }
-      }
-    }
+    addNewHistory(
+        newNavRequests = newNavRequests,
+        newTopScreen = newTopScreen,
+        transaction = transaction,
+        lastButOneScreen = lastButOneScreen
+    )
 
     transaction.commitNow()
 
     history = newHistory
 
+    dispatchScreenResult(currentTopScreen, screenResult)
+  }
+
+  private fun clearCurrentHistory(
+      currentNavRequests: List<NavRequest>,
+      newNavRequests: List<NavRequest>,
+      transaction: FragmentTransaction,
+      newTopScreen: NavRequest,
+      lastButOneScreen: NavRequest?
+  ) {
+    // Remove old fragments if they are no longer present in the new set of screens
+    currentNavRequests.forEach { navRequest ->
+      val fragment = fragmentManager.findFragmentByTag(navRequest.key.fragmentTag)
+
+      if (fragment != null) {
+        hideOrRemoveFragment(
+            newNavRequests = newNavRequests,
+            navRequest = navRequest,
+            transaction = transaction,
+            fragment = fragment,
+            newTopScreen = newTopScreen,
+            lastButOneScreen = lastButOneScreen
+        )
+      }
+    }
+  }
+
+  private fun hideOrRemoveFragment(
+      newNavRequests: List<NavRequest>,
+      navRequest: NavRequest,
+      transaction: FragmentTransaction,
+      fragment: Fragment,
+      newTopScreen: NavRequest,
+      lastButOneScreen: NavRequest?
+  ) {
+    if (!newNavRequests.contains(navRequest))
+      transaction.remove(fragment)
+    else if (fragment.isShowing)
+      hideFragment(
+          navRequest = navRequest,
+          newTopScreen = newTopScreen,
+          transaction = transaction,
+          fragment = fragment,
+          lastButOneScreen = lastButOneScreen
+      )
+  }
+
+  private fun hideFragment(
+      navRequest: NavRequest,
+      newTopScreen: NavRequest,
+      transaction: FragmentTransaction,
+      fragment: Fragment,
+      lastButOneScreen: NavRequest?
+  ) {
+    val isNeitherTopNorLastButOneScreen = navRequest != newTopScreen && navRequest != lastButOneScreen
+    val isLastButOneScreenCompletelyObscured = navRequest == lastButOneScreen && !newTopScreen.key.isModal
+
+    // Don't hide the last but one screen if the incoming screen is a modal since we want whatever changes the user has
+    // made in this screen to be visible in the background of the modal
+    if (isNeitherTopNorLastButOneScreen || isLastButOneScreenCompletelyObscured) {
+      transaction.detach(fragment)
+    }
+  }
+
+  private fun addNewHistory(
+      newNavRequests: List<NavRequest>,
+      newTopScreen: NavRequest,
+      transaction: FragmentTransaction,
+      lastButOneScreen: NavRequest?
+  ) {
+    newNavRequests.forEach { navRequest ->
+      val existingFragment = fragmentManager.findFragmentByTag(navRequest.key.fragmentTag)
+      when (navRequest) {
+        newTopScreen -> handleAddingTopFragment(navRequest, existingFragment, transaction)
+        else -> handleRemovingOlderFragments(newTopScreen, existingFragment, transaction, navRequest, lastButOneScreen)
+      }
+    }
+  }
+
+  private fun handleAddingTopFragment(
+      navRequest: NavRequest,
+      existingFragment: Fragment?,
+      transaction: FragmentTransaction
+  ) {
+    when {
+      navRequest.key.isModal -> handleAddingModalTopFragment(existingFragment, transaction, navRequest)
+      else -> handleAddingFullscreenTopFragment(existingFragment, transaction, navRequest)
+    }
+  }
+
+  private fun handleAddingFullscreenTopFragment(
+      existingFragment: Fragment?,
+      transaction: FragmentTransaction,
+      navRequest: NavRequest
+  ) {
+    when {
+      existingFragment != null -> attachOrReplaceTop(existingFragment, transaction, navRequest)
+      else -> transaction.add(containerId, navRequest.key.createFragment(), navRequest.key.fragmentTag)
+    }
+  }
+
+  private fun attachOrReplaceTop(
+      existingFragment: Fragment,
+      transaction: FragmentTransaction,
+      navRequest: NavRequest
+  ) {
+    when {
+      // fragments are quirky, they die asynchronously. Ignore if they're still there.
+      existingFragment.isRemoving -> transaction.replace(containerId, navRequest.key.createFragment(), navRequest.key.fragmentTag)
+      existingFragment.isNotShowing -> transaction.attach(existingFragment)
+    }
+  }
+
+  private fun handleAddingModalTopFragment(
+      existingFragment: Fragment?,
+      transaction: FragmentTransaction,
+      navRequest: NavRequest
+  ) {
+    when {
+      existingFragment != null -> attachOrAddTop(existingFragment, transaction, navRequest)
+      else -> transaction.add(navRequest.key.createFragment(), navRequest.key.fragmentTag)
+    }
+  }
+
+  private fun attachOrAddTop(
+      existingFragment: Fragment,
+      transaction: FragmentTransaction,
+      navRequest: NavRequest
+  ) {
+    when {
+      // fragments are quirky, they die asynchronously. Ignore if they're still there.
+      existingFragment.isRemoving -> transaction.add(navRequest.key.createFragment(), navRequest.key.fragmentTag)
+      existingFragment.isNotShowing -> transaction.attach(existingFragment)
+    }
+  }
+
+  private fun handleRemovingOlderFragments(
+      newTopScreen: NavRequest,
+      existingFragment: Fragment?,
+      transaction: FragmentTransaction,
+      navRequest: NavRequest,
+      lastButOneScreen: NavRequest?
+  ) {
+    when {
+      newTopScreen.key.isModal -> handleRemovingOlderFragmentForModalTop(navRequest, lastButOneScreen, existingFragment, transaction)
+      else -> handleRemovingOlderFragmentForFullscreenTop(existingFragment, transaction)
+    }
+  }
+
+  private fun handleRemovingOlderFragmentForFullscreenTop(
+      existingFragment: Fragment?,
+      transaction: FragmentTransaction
+  ) {
+    if (existingFragment != null && existingFragment.isShowing) {
+      transaction.detach(existingFragment)
+    }
+  }
+
+  private fun handleRemovingOlderFragmentForModalTop(
+      navRequest: NavRequest,
+      lastButOneScreen: NavRequest?,
+      existingFragment: Fragment?,
+      transaction: FragmentTransaction
+  ) {
+    // Last but one key should not be detached since the topmost key is a modal
+    // and we want the previous screen to be visible
+    when {
+      navRequest == lastButOneScreen -> ensureFragmentIsPresent(existingFragment, transaction, navRequest)
+      existingFragment != null && existingFragment.isShowing -> transaction.detach(existingFragment)
+    }
+  }
+
+  private fun ensureFragmentIsPresent(
+      existingFragment: Fragment?,
+      transaction: FragmentTransaction,
+      navRequest: NavRequest
+  ) {
+    when {
+      existingFragment == null -> transaction.replace(containerId, navRequest.key.createFragment(), navRequest.key.fragmentTag)
+      existingFragment.isRemoving -> transaction.add(navRequest.key.createFragment(), navRequest.key.fragmentTag)
+      else -> transaction.attach(existingFragment)
+    }
+  }
+
+  private fun dispatchScreenResult(
+      currentTopScreen: NavRequest,
+      screenResult: ScreenResult?
+  ) {
     val newTopNavRequest = history.top()
-    if (currentTop is ExpectingResult && screenResult != null) {
+    if (currentTopScreen is ExpectingResult && screenResult != null) {
       val targetFragment = fragmentManager.findFragmentByTag(newTopNavRequest.key.fragmentTag)
 
       require(targetFragment != null) { "Could not find fragment for key: [${newTopNavRequest.key}]" }
       require(targetFragment is ExpectsResult) { "Key [${newTopNavRequest.key}] was pushed expecting results, but fragment [${targetFragment.javaClass.name}] does not implement [${ExpectsResult::class.java.name}]!" }
 
-      handler.post { targetFragment.onScreenResult(currentTop.requestType, screenResult) }
+      handler.post { targetFragment.onScreenResult(currentTopScreen.requestType, screenResult) }
     }
   }
 
