@@ -15,6 +15,9 @@ abstract class ScreenKey(): Parcelable {
 
   open val type: ScreenType = ScreenType.FullScreen
 
+  val isModal: Boolean
+    get() = type == ScreenType.Modal
+
   protected abstract fun instantiateFragment(): Fragment
 
   fun createFragment(): Fragment {

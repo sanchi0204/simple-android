@@ -143,11 +143,11 @@ class Router(
           transaction.remove(fragment)
         } else if (fragment.isShowing) {
           if (navRequest == newTop) {
-            if (currentTop.key.type != ScreenKey.ScreenType.Modal) {
+            if (!currentTop.key.isModal) {
               transaction.detach(fragment)
             }
           } else {
-            if ((navRequest != beforeNewTop) || (navRequest == beforeNewTop && newTop.key.type != ScreenKey.ScreenType.Modal)) {
+            if ((navRequest != beforeNewTop) || (navRequest == beforeNewTop && !newTop.key.isModal)) {
               transaction.detach(fragment)
             }
           }
@@ -158,7 +158,7 @@ class Router(
     newNavRequests.forEach { navRequest ->
       var fragment = fragmentManager.findFragmentByTag(navRequest.key.fragmentTag)
       if (navRequest == newTop) {
-        if (navRequest.key.type == ScreenKey.ScreenType.FullScreen) {
+        if (!navRequest.key.isModal) {
           if (fragment != null) {
             if (fragment.isRemoving) { // fragments are quirky, they die asynchronously. Ignore if they're still there.
               transaction.replace(containerId, navRequest.key.createFragment(), navRequest.key.fragmentTag)
@@ -169,7 +169,7 @@ class Router(
             fragment = navRequest.key.createFragment() // create and add new top if did not exist
             transaction.add(containerId, fragment, navRequest.key.fragmentTag)
           }
-        } else if (navRequest.key.type == ScreenKey.ScreenType.Modal) {
+        } else if (navRequest.key.isModal) {
           if (fragment != null) {
             if (fragment.isRemoving) { // fragments are quirky, they die asynchronously. Ignore if they're still there.
               transaction.add(navRequest.key.createFragment(), navRequest.key.fragmentTag)
@@ -182,11 +182,11 @@ class Router(
           }
         }
       } else {
-        if (newTop.key.type == ScreenKey.ScreenType.FullScreen) {
+        if (!newTop.key.isModal) {
           if (fragment != null && fragment.isShowing) {
             transaction.detach(fragment)
           }
-        } else if (newTop.key.type == ScreenKey.ScreenType.Modal) {
+        } else if (newTop.key.isModal) {
           // Last but one key should not be detached since the topmost key is a modal
           // and we want the previous screen to be visible
           if (navRequest != beforeNewTop && fragment != null && fragment.isShowing) {
