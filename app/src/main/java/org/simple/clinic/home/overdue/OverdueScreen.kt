@@ -16,6 +16,7 @@ import org.simple.clinic.contactpatient.ContactPatientBottomSheet
 import org.simple.clinic.di.injector
 import org.simple.clinic.mobius.MobiusDelegate
 import org.simple.clinic.router.screen.ScreenRouter
+import org.simple.clinic.storage.paging.RoomInvalidatingDataSource
 import org.simple.clinic.summary.OpenIntention
 import org.simple.clinic.summary.PatientSummaryScreenKey
 import org.simple.clinic.util.UserClock
@@ -120,6 +121,22 @@ class OverdueScreen(
 
     dataSource
         .toObservable(pagedListConfig, detaches)
+        .takeUntil(detaches)
+        .doOnNext { appointmentsList ->
+          val areOverdueAppointmentsAvailable = appointmentsList.isNotEmpty()
+
+          viewForEmptyList.visibleOrGone(isVisible = !areOverdueAppointmentsAvailable)
+          overdueRecyclerView.visibleOrGone(isVisible = areOverdueAppointmentsAvailable)
+        }
+        .subscribe(overdueListAdapter::submitList)
+  }
+
+  @SuppressLint("CheckResult")
+  override fun showOverdueAppointments(dataSource: RoomInvalidatingDataSource.Factory<OverdueAppointmentRow>) {
+    val detaches = detaches()
+
+    dataSource
+        .asObservable(pagedListConfig, detaches)
         .takeUntil(detaches)
         .doOnNext { appointmentsList ->
           val areOverdueAppointmentsAvailable = appointmentsList.isNotEmpty()
