@@ -5,15 +5,18 @@ import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import org.simple.clinic.AppDatabase
 import org.simple.clinic.facility.Facility
 import org.simple.clinic.overdue.AppointmentRepository
+import org.simple.clinic.storage.paging.RoomInvalidatingDataSource
 import org.simple.clinic.util.scheduler.SchedulersProvider
 
 class OverdueEffectHandler @AssistedInject constructor(
     private val schedulers: SchedulersProvider,
     private val appointmentRepository: AppointmentRepository,
     private val currentFacilityChanges: Observable<Facility>,
-    private val dataSourceFactory: OverdueAppointmentRowDataSource.Factory.InjectionFactory,
+    private val dataSourceFactory: OverdueAppointmentRowDataSourceFactoryV2.InjectionFactory,
+    private val appDatabase: AppDatabase,
     @Assisted private val uiActions: OverdueUiActions
 ) {
 
@@ -49,6 +52,7 @@ class OverdueEffectHandler @AssistedInject constructor(
         facility = loadOverdueAppointments.facility
     )
 
-    uiActions.showOverdueAppointments(dataSourceFactory.create(loadOverdueAppointments.facility, overdueAppointmentsDataSource))
+    val factory = dataSourceFactory.create(loadOverdueAppointments.facility, overdueAppointmentsDataSource)
+    uiActions.showOverdueAppointments(RoomInvalidatingDataSource.Factory(appDatabase, factory, setOf("OverdueAppointment")))
   }
 }

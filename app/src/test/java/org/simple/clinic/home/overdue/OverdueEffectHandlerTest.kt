@@ -23,7 +23,8 @@ class OverdueEffectHandlerTest {
       appointmentRepository = mock(),
       currentFacilityChanges = Observable.just(facility),
       dataSourceFactory = mock(),
-      uiActions = uiActions
+      uiActions = uiActions,
+      appDatabase = mock()
   ).build()
   private val effectHandlerTestCase = EffectHandlerTestCase(effectHandler)
 
