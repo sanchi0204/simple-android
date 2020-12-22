@@ -2,6 +2,7 @@ package org.simple.clinic.home.overdue
 
 import android.os.Parcelable
 import androidx.paging.DataSource
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.DatabaseView
 import androidx.room.Embedded
@@ -149,7 +150,7 @@ data class OverdueAppointment(
         facilityUuid: UUID,
         scheduledBefore: LocalDate,
         scheduledAfter: LocalDate
-    ): DataSource.Factory<Int, OverdueAppointment>
+    ): PagingSource<Int, OverdueAppointment>
 
     @Query("""
       SELECT COUNT(appt_uuid) FROM OverdueAppointment

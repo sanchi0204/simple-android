@@ -6,7 +6,8 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
-import androidx.paging.PagedList
+import androidx.paging.*
+import androidx.paging.rxjava2.observable
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jakewharton.rxbinding3.view.detaches
 import io.reactivex.rxkotlin.ofType
@@ -56,7 +57,7 @@ class OverdueScreen(
 
   @Inject
   @Named("for_overdue_appointments")
-  lateinit var pagedListConfig: PagedList.Config
+  lateinit var pagedListConfig: PagingConfig
 
   private val overdueListAdapter = PagingItemAdapter(OverdueAppointmentRow.DiffCallback())
 
@@ -115,19 +116,20 @@ class OverdueScreen(
   }
 
   @SuppressLint("CheckResult")
-  override fun showOverdueAppointments(dataSource: OverdueAppointmentRowDataSource.Factory) {
+  override fun showOverdueAppointments(dataSource: PagingSource<Int, OverdueAppointment>) {
     val detaches = detaches()
 
-    dataSource
-        .toObservable(pagedListConfig, detaches)
-        .takeUntil(detaches)
-        .doOnNext { appointmentsList ->
-          val areOverdueAppointmentsAvailable = appointmentsList.isNotEmpty()
+    val pagerObservable = Pager(config = pagedListConfig) {
+      dataSource
+    }.observable
 
-          viewForEmptyList.visibleOrGone(isVisible = !areOverdueAppointmentsAvailable)
-          overdueRecyclerView.visibleOrGone(isVisible = areOverdueAppointmentsAvailable)
-        }
-        .subscribe(overdueListAdapter::submitList)
+    pagerObservable
+            .takeUntil(detaches)
+            .map { appointmentsListPagingData ->
+              appointmentsListPagingData.map { OverdueAppointmentRow.from(it, userClock, dateFormatter, false) }
+            }
+            .map { PagingDataLoaded(it) }
+            .subscribe { overdueListAdapter.submitList(it) }
   }
 
   override fun openPatientSummary(patientUuid: UUID) {

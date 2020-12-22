@@ -2,6 +2,7 @@ package org.simple.clinic.di
 
 import androidx.paging.Config
 import androidx.paging.PagedList
+import androidx.paging.PagingConfig
 import dagger.Module
 import dagger.Provides
 import javax.inject.Named
@@ -22,11 +23,11 @@ class PagingModule {
 
   @Provides
   @Named("for_overdue_appointments")
-  fun providePagingConfigForOverdueAppointments(): PagedList.Config {
-    return Config(
+  fun providePagingConfigForOverdueAppointments(): PagingConfig {
+    return PagingConfig(
         pageSize = 50,
         prefetchDistance = 15,
-        initialLoadSizeHint = 100,
+        initialLoadSize = 100,
         enablePlaceholders = false
     )
   }

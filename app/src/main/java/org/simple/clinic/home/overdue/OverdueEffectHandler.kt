@@ -13,7 +13,6 @@ class OverdueEffectHandler @AssistedInject constructor(
     private val schedulers: SchedulersProvider,
     private val appointmentRepository: AppointmentRepository,
     private val currentFacilityChanges: Observable<Facility>,
-    private val dataSourceFactory: OverdueAppointmentRowDataSource.Factory.InjectionFactory,
     @Assisted private val uiActions: OverdueUiActions
 ) {
 
@@ -49,6 +48,6 @@ class OverdueEffectHandler @AssistedInject constructor(
         facility = loadOverdueAppointments.facility
     )
 
-    uiActions.showOverdueAppointments(dataSourceFactory.create(loadOverdueAppointments.facility, overdueAppointmentsDataSource))
+    uiActions.showOverdueAppointments(overdueAppointmentsDataSource)
   }
 }

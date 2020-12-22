@@ -53,7 +53,7 @@ data class OverdueAppointmentRow(
       return appointments.map { overdueAppointment -> from(overdueAppointment, clock, dateFormatter, isDiabetesManagementEnabled) }
     }
 
-    private fun from(
+    fun from(
         overdueAppointment: OverdueAppointment,
         clock: UserClock,
         dateFormatter: DateTimeFormatter,
