@@ -7,6 +7,7 @@
 - Add `ScreenFragmentCompat` to support using the older view-based screens in the v2 navigation framework
 - [In Progress: 21 Dec 2020] Instant search in Faster registration
 - [In Progress: 22 Dec 2020] Migrate app to use ViewBinding
+- Add convenience classes for creating screens for the new navigation framework
 
 ## On Demo
 ### Internal
