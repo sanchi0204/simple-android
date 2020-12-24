@@ -19,12 +19,12 @@ import com.spotify.mobius.functions.Consumer
 import com.spotify.mobius.rx2.RxMobius
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
-import org.simple.clinic.util.unsafeLazy
 import org.simple.clinic.mobius.eventSources
 import org.simple.clinic.mobius.first
 import org.simple.clinic.navigation.v2.ScreenKey
+import org.simple.clinic.util.unsafeLazy
 
-abstract class BaseScreen<K: ScreenKey, M: Parcelable, E, F>: Fragment() {
+abstract class BaseScreen<K : ScreenKey, B, M : Parcelable, E, F> : Fragment() {
 
   companion object {
     private const val KEY_MODEL = "org.simple.clinic.navigation.v2.fragments.BaseScreen.KEY_MODEL"
@@ -43,12 +43,22 @@ abstract class BaseScreen<K: ScreenKey, M: Parcelable, E, F>: Fragment() {
 
   protected val screenKey by unsafeLazy { ScreenKey.key<K>(this) }
 
+  private var _binding: B? = null
+
+  protected val binding: B
+    get() = _binding!!
+
+  protected val isBound: Boolean
+    get() = _binding != null
+
   @LayoutRes
   abstract fun layoutResId(): Int
 
   abstract fun defaultModel(): M
 
   abstract fun onModelUpdate(model: M)
+
+  abstract fun bindView(view: View): B
 
   open fun events(): Observable<E> = Observable.never()
 
@@ -61,7 +71,11 @@ abstract class BaseScreen<K: ScreenKey, M: Parcelable, E, F>: Fragment() {
   open fun additionalEventSources(): List<EventSource<E>> = emptyList()
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-    return inflater.inflate(layoutResId(), container, false)
+    val view = inflater.inflate(layoutResId(), container, false)
+
+    _binding = bindView(view)
+
+    return view
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -78,6 +92,7 @@ abstract class BaseScreen<K: ScreenKey, M: Parcelable, E, F>: Fragment() {
   override fun onDestroyView() {
     super.onDestroyView()
     controller.disconnect()
+    _binding = null
   }
 
   override fun onResume() {
@@ -105,7 +120,9 @@ abstract class BaseScreen<K: ScreenKey, M: Parcelable, E, F>: Fragment() {
       }
 
       override fun accept(model: M) {
-        onModelUpdate(model)
+        if (isBound) {
+          onModelUpdate(model)
+        }
       }
     }
   }
